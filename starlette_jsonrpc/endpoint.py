@@ -12,6 +12,8 @@ from starlette_jsonrpc.exceptions import JSONRPCInvalidParamsException
 from starlette_jsonrpc.exceptions import JSONRPCInvalidRequestException
 from starlette_jsonrpc.exceptions import JSONRPCMethodNotFoundException
 from starlette_jsonrpc.exceptions import JSONRPCParseErrorException
+from starlette_jsonrpc.exceptions import JSONRPCServerErrorException
+from starlette_jsonrpc.exceptions import JSONRPCUserException
 from starlette_jsonrpc.schemas import JSONRPCErrorResponse
 from starlette_jsonrpc.schemas import JSONRPCRequest
 from starlette_jsonrpc.schemas import JSONRPCResponse
@@ -28,6 +30,8 @@ class JSONRPCEndpoint(HTTPEndpoint):
         except JSONRPCInvalidRequestException as exc:
             return self._get_exception_response(exc)
         except JSONRPCParseErrorException as exc:
+            return self._get_exception_response(exc)
+        except JSONRPCServerErrorException as exc:
             return self._get_exception_response(exc)
 
         return JSONResponse(response)
@@ -99,6 +103,11 @@ class JSONRPCEndpoint(HTTPEndpoint):
             except KeyError as e:
                 errors = {"params": f"Required param: {e}"}
                 raise JSONRPCInvalidParamsException(id, errors)
+            except JSONRPCUserException as e:
+                code = e.exception_info.pop("code")
+                msg = e.exception_info.pop("message")
+                errors = e.exception_info
+                raise JSONRPCServerErrorException(id, errors, code, msg)
         else:
             raise JSONRPCInvalidRequestException()
 

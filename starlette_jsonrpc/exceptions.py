@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 class JSONRPCException(Exception):
     CODE = None
     MESSAGE = None
@@ -33,3 +35,16 @@ class JSONRPCInvalidRequestException(JSONRPCException):
 class JSONRPCParseErrorException(JSONRPCException):
     CODE = -32700
     MESSAGE = "Parse error."
+
+class JSONRPCServerErrorException(JSONRPCException):
+    def __init__(self, id: str = None, errors: dict = None, code: int = -32000, msg: str = ""):
+        super().__init__(id, errors)
+        self.CODE = code
+        self.MESSAGE = msg
+
+class JSONRPCUserException(Exception):
+    def __init__(self, code: int, msg: str, **kwargs):
+        self.exception_info: Dict[str, Any] = {}
+        self.exception_info["code"] = code
+        self.exception_info["message"] = msg
+        self.exception_info.update(**kwargs)
